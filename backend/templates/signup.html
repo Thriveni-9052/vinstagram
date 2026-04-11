@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signup</title>
+</head>
+<body>
+
+<h2>Create Account</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <input type="text" name="username" placeholder="Username" required><br><br>
+    <input type="password" name="password" placeholder="Password" required><br><br>
+
+    <!-- ✅ Bio -->
+    <input type="text" name="bio" placeholder="Bio"><br><br>
+
+    <!-- ✅ Profile Pic (mobile nunchi select) -->
+    <input type="file" name="profile_pic"><br><br>
+
+    <button type="submit">Signup</button>
+</form>
+
+<a href="/login">Already have account? Login</a>
+
+</body>
+</html>

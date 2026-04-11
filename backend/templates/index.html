@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VInstagram</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- 🔥 NAVBAR -->
+<div class="navbar">
+    <h2>📸 VInstagram</h2>
+</div>
+
+<!-- LOGIN -->
+<div class="upload-box">
+    <h3>Login</h3>
+    <input id="loginUsername" placeholder="Username"><br><br>
+    <input id="loginPassword" type="password" placeholder="Password"><br><br>
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- SIGNUP -->
+<div class="upload-box">
+    <h3>Signup</h3>
+    <input id="signupUsername" placeholder="Username"><br><br>
+    <input id="signupPassword" type="password" placeholder="Password"><br><br>
+    <button onclick="signup()">Signup</button>
+</div>
+
+<hr>
+
+<h2>🌍 Feed</h2>
+<div id="feed"></div>
+
+<script>
+
+// 🔐 LOGIN
+function login() {
+    fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: document.getElementById('loginUsername').value,
+            password: document.getElementById('loginPassword').value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        }
+    });
+}
+
+// 📝 SIGNUP
+function signup() {
+    fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: document.getElementById('signupUsername').value,
+            password: document.getElementById('signupPassword').value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+    });
+}
+
+// 🌍 LOAD FEED
+function loadFeed() {
+    fetch('/feed')
+    .then(res => res.json())
+    .then(posts => {
+
+        const feed = document.getElementById("feed");
+        feed.innerHTML = "";
+
+        posts.forEach(p => {
+
+            let media = "";
+
+            // ✅ IMAGE URL
+            if (p.image.startsWith("http")) {
+                media = `<img src="${p.image}" width="300">`;
+            }
+            // ✅ VIDEO
+            else if (p.image.endsWith(".mp4")) {
+                media = `
+                    <video width="300" controls>
+                        <source src="/uploads/${p.image}">
+                    </video>
+                `;
+            }
+            // ✅ LOCAL IMAGE
+            else {
+                media = `<img src="/uploads/${p.image}" width="300">`;
+            }
+
+            let div = document.createElement("div");
+		div.classList.add("post");
+
+            div.innerHTML = `
+                <h4>${p.username}</h4>
+                ${media}
+                <p>${p.caption}</p>
+                <p>❤️ ${p.likes}</p>
+
+                <button id="like-${p.id}">Like</button>
+
+                <br><br>
+
+                <input id="comment-${p.id}" placeholder="Comment">
+                <button id="commentBtn-${p.id}">Comment</button>
+
+                ${(p.comments || []).map(c =>
+                    `<p>💬 ${c.username}: ${c.text}</p>`
+                ).join("")}
+            `;
+
+            feed.appendChild(div);
+
+            // ❤️ LIKE
+            document.getElementById(`like-${p.id}`)
+            .addEventListener("click", function () {
+                fetch(`/like/${p.id}`, {
+                    method: "POST"
+                }).then(() => loadFeed());
+            });
+
+            // 💬 COMMENT
+            document.getElementById(`commentBtn-${p.id}`)
+            .addEventListener("click", function () {
+
+                const input = document.getElementById(`comment-${p.id}`);
+
+                fetch(`/comment/${p.id}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: input.value
+                    })
+                }).then(() => {
+                    input.value = "";
+                    loadFeed();
+                });
+            });
+
+        });
+
+    });
+}
+
+// 🚀 START
+loadFeed();
+
+</script>
+
+</body>
+</html>

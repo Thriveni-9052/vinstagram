@@ -1,0 +1,232 @@
+<html>
+<head>
+    <title>Vinstagram</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f0f2f5;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+<div style="text-align:center; margin-top:20px;">
+    <h3>Upload Post 📤</h3>
+
+    <input type="file" id="image" />
+    <br><br>
+
+    <input type="text" id="caption" placeholder="Enter caption" />
+    <br><br>
+
+    <button onclick="uploadPost()">Upload</button>
+</div>
+
+
+        #feed {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .post {
+            width: 400px;
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .post img {
+            width: 100%;
+        }
+
+        .content {
+            padding: 10px;
+        }
+
+        .caption {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .like {
+            background: #ff4d4d;
+        }
+
+        .comment {
+            background: #007bff;
+        }
+
+        .liked {
+            background: green !important;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="header">📸 Vinstagram</div>
+
+<div id="feed"></div>
+
+<script>
+fetch("http://127.0.0.1:5000/feed")
+.then(res => res.json())
+.then(data => {
+    let feed = document.getElementById("feed");
+
+    data.forEach(post => {
+        let div = document.createElement("div");
+        div.className = "post";
+
+        div.innerHTML = `
+            <img src="http://127.0.0.1:5000/${post.image}">
+            
+            <div class="content">
+                <div class="caption">❤️ ${post.caption}</div>
+
+                <div class="actions">
+                    <button class="like" onclick="likePost(this)">Like ❤️</button>
+                    <button class="comment" onclick="commentPost()">Comment 💬</button>
+                </div>
+            </div>
+        `;
+
+        feed.appendChild(div);
+    });
+});
+
+// ❤️ Like function
+function likePost(btn) {
+    btn.classList.toggle("liked");
+
+    if (btn.classList.contains("liked")) {
+        btn.innerText = "Liked ❤️";
+    } else {
+        btn.innerText = "Like ❤️";
+    }
+}
+
+// 💬 Comment function
+function commentPost() {
+    let comment = prompt("Enter your comment:");
+    if (comment) {
+        alert("Comment added: " + comment);
+    }
+}
+</script>
+let API_URL = "http://127.0.0.1:5000";
+
+// 📤 Upload Post
+function uploadPost() {
+    let image = document.getElementById("image").files[0];
+    let caption = document.getElementById("caption").value;
+
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("caption", caption);
+
+    fetch(`${API_URL}/upload`, {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+
+// ❤️ Like Post
+function likePost(postId) {
+    fetch(`${API_URL}/like/${postId}`, {
+        method: "POST"
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Likes: " + data.likes);
+        location.reload();
+    });
+}
+
+// 💬 Comment Post
+function commentPost(postId) {
+    let comment = prompt("Enter your comment:");
+
+    if (comment) {
+        fetch(`${API_URL}/comment/${postId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ comment: comment })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+        });
+    }
+}
+
+// 📸 Load Feed
+function loadFeed() {
+    fetch(`${API_URL}/feed`)
+    .then(res => res.json())
+    .then(data => {
+        let feed = document.getElementById("feed");
+        feed.innerHTML = "";
+
+        data.forEach(post => {
+            let div = document.createElement("div");
+            div.className = "post";
+
+            div.innerHTML = `
+                <img src="${API_URL}/${post.image}">
+                <div class="content">
+                    <p>${post.caption}</p>
+
+                    <button onclick="likePost(${post.id})">
+                        Like ❤️ (${post.likes})
+                    </button>
+
+                    <button onclick="commentPost(${post.id})">
+                        Comment 💬
+                    </button>
+                </div>
+            `;
+
+            feed.appendChild(div);
+        });
+    });
+}
+
+// 🔄 Load feed when page loads
+window.onload = loadFeed;
+</body>
+</html>

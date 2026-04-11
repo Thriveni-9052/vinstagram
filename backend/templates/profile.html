@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+    <style>
+.profile-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 15px 25px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Center logo */
+.logo {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Right side buttons */
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.topbar button {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+           
+.right-icons {
+    position: absolute;
+    right: 3px;
+    bottom: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0px;
+}
+
+.icon-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.icon-block button {
+    padding: 5px;
+    font-size: 15px;
+    margin: 0;
+}
+
+.icon-block p {
+    margin: 0;
+    font-size: 10px;
+    line-height: 0.8;
+    color: white;
+    background: rgba(0,0,0,0.6); 
+    padding: 2px 5px;
+    border-radius: 5px;
+}    
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #fdfbfb, #ebedee);
+    margin: 0;
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;  /* LEFT side */
+    padding: 40px;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+.profile-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.profile-section {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+.profile-pic {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+}
+
+.profile-pic img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.profile-pic:hover {
+    transform: scale(1.05);
+}
+
+/* User Info */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Username */
+.username {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.stats {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.stats button {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.stats button:hover {
+    transform: scale(1.05);
+}
+
+/* Bio */
+.bio {
+    color: #555;
+    max-width: 300px;
+}
+/* Buttons */
+button {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+/* Forms */
+form {
+    text-align: center;
+    margin: 15px 0;
+}
+
+/* Inputs */
+input {
+    padding: 8px;
+    width: 60%;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+/* Post grid */
+.post {
+    background: white;
+    margin: 20px auto;
+    padding: 15px;
+    width: 350px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.post:hover {
+    transform: translateY(-5px);
+}
+
+.reel img,
+.reel video {
+    max-height: 80vh;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+.reel p {
+    background: rgba(0,0,0,0.5);
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
+/* Section titles */
+h2, h3 {
+    text-align: center;
+}
+
+/* Divider */
+hr {
+    border: none;
+    height: 1px;
+    background: #ddd;
+}
+    .reels-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.reel {
+    width: 400px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.reel img,
+.reel video {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+}
+</style>
+
+</head>
+<body>
+	
+<div class="topbar">
+
+    <div></div>
+
+    <div class="logo">📸 VInstagram</div>
+
+    <div class="actions">
+
+        <form id="dpForm" action="/edit_profile" method="POST" enctype="multipart/form-data">
+            <input type="file" name="profile_pic" id="dpInput" hidden>
+            <button type="button" onclick="document.getElementById('dpInput').click()">Update DP</button>
+        </form>
+
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="image" id="uploadInput" hidden>
+            <button type="button" onclick="document.getElementById('uploadInput').click()">Upload</button>
+        </form>
+
+        <button onclick="logout()">Logout</button>
+
+    </div>
+</div>
+
+<hr>
+<div class="header">
+
+    <div class="profile-section">
+
+        <!-- LEFT SIDE -->
+        <div class="profile-left">
+            <h2 class="profile-title">👤 My Profile</h2>
+
+            <img src="/uploads/{{ user.profile_pic if user.profile_pic else 'default.png' }}" class="profile-pic">
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="user-info">
+            <div class="username">{{ user.username }}</div>
+
+            <div class="stats">
+    <button>{{ posts|length }} Posts</button>
+    <button>{{ user.followers if user.followers else 0 }} Followers</button>
+    <button>{{ user.following if user.following else 0 }} Following</button>
+</div>
+
+         <div>
+		 <button onclick="followUser({{ user.id }})">Follow</button>
+    <p id="bioText">{{ user.bio }}</p>
+
+    <input type="text" id="bioInput" style="display:none;">
+
+    <button onclick="editBio()">Edit</button>
+    <button onclick="saveBio()" id="saveBtn" style="display:none;">Save</button>
+</div>
+
+    </div>
+
+</div>
+<!-- 🔥 UPLOAD -->
+
+<script>
+document.getElementById("uploadInput").onchange = function() {
+    document.getElementById("uploadForm").submit();
+};
+</script>
+
+<hr>
+
+<script>
+function logout() {
+    fetch('/logout', {
+        method: 'POST'
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.href = "/";
+    });
+}
+</script>
+
+<hr>
+<div class="reels-container">
+
+{% for post in posts %}
+
+<div class="reel">
+
+    <!-- IMAGE / VIDEO -->
+    {% if post.image.startswith('http') %}
+        <img src="{{ post.image }}">
+    {% elif post.image.endswith('.mp4') %}
+        <video controls autoplay loop>
+            <source src="/uploads/{{ post.image }}">
+        </video>
+    {% else %}
+        <img src="/uploads/{{ post.image }}">
+    {% endif %}
+
+    <!-- CAPTION -->
+    {% if post.caption %}
+    <p style="color:white; position:absolute; bottom:80px; left:10px;">
+        {{ post.caption }}
+    </p>
+    {% endif %}
+
+    <!-- 🔥 RIGHT SIDE BUTTONS -->
+    <div class="right-icons">
+
+        <!-- ❤️ LIKE -->
+        <div class="icon-block">
+            <button onclick="like({{ post.id }})">❤️</button>
+            <p id="likes-{{ post.id }}">{{ post.likes }}</p>
+        </div>
+
+        <!-- 💬 COMMENT -->
+        <div class="icon-block">
+            <button onclick="addComment({{ post.id }})">💬</button>
+            <p>{{ post.comment_count }}</p>
+        </div>
+
+        <!-- 📤 SHARE -->
+        <div class="icon-block">
+            <button onclick="sharePost('{{ post.image }}')">📤</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+// DP upload
+document.getElementById("dpInput").onchange = function() {
+    document.getElementById("dpForm").submit();
+};
+
+// Post upload
+document.getElementById("uploadInput").onchange = function() {
+    document.getElementById("uploadForm").submit();
+};
+</script>
+<script>
+function editBio() {
+    document.getElementById("bioText").style.display = "none";
+    document.getElementById("bioInput").style.display = "block";
+    document.getElementById("saveBtn").style.display = "inline";
+
+    document.getElementById("bioInput").value =
+        document.getElementById("bioText").innerText;
+}
+
+function saveBio() {
+    let bio = document.getElementById("bioInput").value;
+
+    fetch("/edit_bio", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ bio: bio })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+</script>
+
+{% endfor %}
+
+<!-- ✅ JS CODE IKADA -->
+<script>
+
+// ❤️ LIKE
+function like(id) {
+    fetch(`/like/${id}`, {
+        method: "POST"
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById(`likes-${id}`).innerText = data.likes;
+    });
+}
+
+// 💬 COMMENT
+function addComment(id) {
+    let text = prompt("Enter comment:");
+
+    if (!text) return;
+
+    fetch(`/comment/${id}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text: text })
+    })
+    .then(() => {
+        location.reload();
+    });
+}
+
+// 📤 SHARE
+function sharePost(image) {
+    navigator.clipboard.writeText(window.location.origin + "/uploads/" + image);
+    alert("Link copied!");
+}
+
+</script>
+</body>
+</html>	
