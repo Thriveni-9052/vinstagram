@@ -19,25 +19,36 @@ jobs:
         script: |
           echo "🚀 Starting Deployment..."
 
-          cd /root/vinstagram
+          cd /home/ubuntu
 
-          echo "📥 Pulling latest code"
+          # Clone if not exists
+          if [ ! -d "vinstagram" ]; then
+            echo "📥 Cloning repo"
+            git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git vinstagram
+          fi
+
+          cd vinstagram
+
+          echo "📥 Pull latest code"
           git pull origin main
 
-          echo "🐍 Activating virtual environment"
+          # Create venv if not exists
+          if [ ! -d "venv" ]; then
+            echo "🐍 Creating virtual environment"
+            python3 -m venv venv
+          fi
+
+          echo "🐍 Activating venv"
           source venv/bin/activate
 
           echo "📦 Installing dependencies"
           pip install -r requirements.txt
-
-          echo "⚙️ Installing Gunicorn"
-          pip install gunicorn 
+          pip install gunicorn
 
           echo "🔁 Restarting services"
-          sudo systemctl restart vinstagram
-          sudo systemctl restart nginx
-          echo "✅ Deployment Successful"
-          
-          
 
           
+          sudo systemctl restart vinstagram
+          sudo systemctl restart nginx
+
+          echo "✅ Deployment Successful"
