@@ -1,0 +1,43 @@
+name: VInstagram CI/CD Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to EC2 via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        script: |
+          echo "🚀 Starting Deployment..."
+
+          cd /root/vinstagram
+
+          echo "📥 Pulling latest code"
+          git pull origin main
+
+          echo "🐍 Activating virtual environment"
+          source venv/bin/activate
+
+          echo "📦 Installing dependencies"
+          pip install -r requirements.txt
+
+          echo "🔁 Restarting services"
+          sudo systemctl restart vinstagram
+          sudo systemctl restart nginx
+
+
+
+
+
+
+
+          echo "✅ Deployment Successful"
