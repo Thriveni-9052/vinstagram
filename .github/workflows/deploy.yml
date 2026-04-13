@@ -52,3 +52,5 @@ jobs:
           sudo systemctl restart nginx
 
           echo "✅ Deployment Successful"
+
+          
