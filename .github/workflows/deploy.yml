@@ -30,10 +30,14 @@ jobs:
           echo "📦 Installing dependencies"
           pip install -r requirements.txt
 
+          echo "⚙️ Installing Gunicorn"
+          pip install gunicorn 
+
           echo "🔁 Restarting services"
           sudo systemctl restart vinstagram
           sudo systemctl restart nginx
           echo "✅ Deployment Successful"
+          
           
 
           
