@@ -33,6 +33,7 @@ jobs:
           echo "🔁 Restarting services"
           sudo systemctl restart vinstagram
           sudo systemctl restart nginx
+          
 
 
 
