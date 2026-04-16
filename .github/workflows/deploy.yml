@@ -49,16 +49,40 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            # Restart Gunicorn
-            sudo systemctl restart vinstagram || true
+            # =========================
+            # 🔥 CREATE GUNICORN SERVICE
+            # =========================
+            sudo bash -c 'cat > /etc/systemd/system/vinstagram.service <<EOF
+            [Unit]
+            Description=Gunicorn instance
+            After=network.target
+
+            [Service]
+            User=ubuntu
+            WorkingDirectory=/home/ubuntu/vinstagram
+            ExecStart=/home/ubuntu/vinstagram/venv/bin/gunicorn -w 3 -b 127.0.0.1:8000 backend.app:app
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF'
+
+            sudo systemctl daemon-reexec
+            sudo systemctl daemon-reload
+            sudo systemctl enable vinstagram
+            sudo systemctl restart vinstagram
+
+            # =========================
+            # 🔥 NGINX CONFIG
+            # =========================
 
             # Remove default nginx
             sudo rm -f /etc/nginx/sites-enabled/default
 
-            # Nginx config
+            # Ensure folders exist
             sudo mkdir -p /etc/nginx/sites-available
             sudo mkdir -p /etc/nginx/sites-enabled
 
+            # Create config
             sudo bash -c 'cat > /etc/nginx/sites-available/vinstagram <<EOF
             server {
                 listen 80;
@@ -71,8 +95,10 @@ jobs:
             }
             EOF'
 
+            # Enable site
             sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled/vinstagram
 
+            # Restart nginx
             sudo systemctl restart nginx
 
             
