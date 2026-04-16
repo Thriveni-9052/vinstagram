@@ -26,7 +26,7 @@ jobs:
 
           # Clone or pull repo
           if [ ! -d "vinstagram" ]; then
-            git clone https://github.com/your-username/vinstagram.git
+            git clone https://github.com/Thriveni-9052/vinstagram.git
           fi
 
           cd vinstagram
@@ -70,7 +70,7 @@ jobs:
               }
           }
           EOF'
-          
-
           sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled
           sudo systemctl restart nginx
+
+          
