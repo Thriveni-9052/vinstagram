@@ -70,6 +70,7 @@ jobs:
               }
           }
           EOF'
+          
 
           sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled
           sudo systemctl restart nginx
