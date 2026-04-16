@@ -1,4 +1,4 @@
-name: VInstagram CI/CD Deploy
+name: Full Deploy to AWS
 
 on:
   push:
@@ -10,47 +10,66 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Deploy to EC2 via SSH
-      uses: appleboy/ssh-action@v1.0.3
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup EC2 & Deploy
+      uses: appleboy/ssh-action@v0.1.6
       with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_KEY }}
+        host: ${{ secrets.HOST }}
+        username: ubuntu
+        key: ${{ secrets.KEY }}
         script: |
-          echo "🚀 Starting Deployment..."
+          # Install packages (first time only)
+          sudo apt update
+          sudo apt install python3-pip python3-venv git nginx -y
 
-          cd /home/ubuntu
-
-          # Clone if not exists
+          # Clone or pull repo
           if [ ! -d "vinstagram" ]; then
-            echo "📥 Cloning repo"
-            git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git vinstagram
+            git clone https://github.com/your-username/vinstagram.git
           fi
 
           cd vinstagram
-
-          echo "📥 Pull latest code"
           git pull origin main
 
-          # Create venv if not exists
+          # Setup venv
           if [ ! -d "venv" ]; then
-            echo "🐍 Creating virtual environment"
             python3 -m venv venv
           fi
 
-          echo "🐍 Activating venv"
           source venv/bin/activate
-
-          echo "📦 Installing dependencies"
           pip install -r requirements.txt
-          pip install gunicorn
 
-          echo "🔁 Restarting services"
+          # Create Gunicorn service
+          sudo bash -c 'cat > /etc/systemd/system/vinstagram.service <<EOF
+          [Unit]
+          Description=Gunicorn instance
+          After=network.target
 
-          
+          [Service]
+          User=ubuntu
+          WorkingDirectory=/home/ubuntu/vinstagram
+          ExecStart=/home/ubuntu/vinstagram/venv/bin/gunicorn -w 3 -b 127.0.0.1:8000 app:app
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF'
+
+          sudo systemctl daemon-reexec
+          sudo systemctl enable vinstagram
           sudo systemctl restart vinstagram
+
+          # Nginx config
+          sudo bash -c 'cat > /etc/nginx/sites-available/vinstagram <<EOF
+          server {
+              listen 80;
+              server_name _;
+              location / {
+                  proxy_pass http://127.0.0.1:8000;
+                  include proxy_params;
+              }
+          }
+          EOF'
+
+          sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled
           sudo systemctl restart nginx
-
-          echo "✅ Deployment Successful"
-
-          
