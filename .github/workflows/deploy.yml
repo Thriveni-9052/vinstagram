@@ -32,39 +32,28 @@ jobs:
             # Install packages
             sudo apt install -y python3 python3-pip python3.12-venv git nginx
 
-            # Clone repo if not exists
-            if [ ! -d "vinstagram" ]; then
-              git clone https://github.com/Thriveni-9052/vinstagram.git
+            # Clone only if not exists
+            if [ ! -d "/home/ubuntu/vinstagram" ]; then
+              git clone https://github.com/Thriveni-9052/vinstagram.git /home/ubuntu/vinstagram
             fi
 
-            cd vinstagram
+            cd /home/ubuntu/vinstagram
+
+            # Pull latest code
             git pull origin main
 
-            # Create virtual env
+            # Setup virtual environment
             python3 -m venv venv
             source venv/bin/activate
 
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            # Gunicorn service
-            sudo bash -c 'cat > /etc/systemd/system/vinstagram.service <<EOF
-            [Unit]
-            Description=Gunicorn instance
-            After=network.target
+            # Restart Gunicorn
+            sudo systemctl restart vinstagram || true
 
-            [Service]
-            User=ubuntu
-            WorkingDirectory=/home/ubuntu/vinstagram
-            ExecStart=/home/ubuntu/vinstagram/venv/bin/gunicorn -w 3 -b 127.0.0.1:8000 app:app
-
-            [Install]
-            WantedBy=multi-user.target
-            EOF'
-
-            sudo systemctl daemon-reexec
-            sudo systemctl enable vinstagram
-            sudo systemctl restart vinstagram
+            # Remove default nginx
+            sudo rm -f /etc/nginx/sites-enabled/default
 
             # Nginx config
             sudo mkdir -p /etc/nginx/sites-available
@@ -74,6 +63,7 @@ jobs:
             server {
                 listen 80;
                 server_name _;
+
                 location / {
                     proxy_pass http://127.0.0.1:8000;
                     include proxy_params;
@@ -82,6 +72,7 @@ jobs:
             EOF'
 
             sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled/vinstagram
+
             sudo systemctl restart nginx
 
             
