@@ -1,4 +1,4 @@
-name: Full Auto Deploy (Zero Setup)
+name: Full Deploy to AWS
 
 on:
   push:
@@ -13,45 +13,49 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.KEY }}
+
           script: |
             set -e
 
-            # ================= SYSTEM UPDATE =================
-            sudo apt update -y
-            sudo apt upgrade -y
+            echo "================ INSTALL DOCKER (AUTO) ================"
 
-            # ================= INSTALL REQUIREMENTS =================
-            sudo apt install -y \
-              git \
-              python3 \
-              python3-pip \
-              python3-venv \
-              nginx \
-              docker.io \
-              docker-compose-plugin
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt update -y
+              sudo apt install -y ca-certificates curl gnupg lsb-release
 
-            # ================= START DOCKER =================
-            sudo systemctl enable docker
-            sudo systemctl start docker
-            sudo usermod -aG docker ubuntu || true
+              sudo install -m 0755 -d /etc/apt/keyrings
 
-            # ================= PROJECT =================
-            cd /home/ubuntu
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-            if [ ! -d "vinstagram" ]; then
-              git clone https://github.com/Thriveni-9052/vinstagram.git
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+              sudo apt update -y
+
+              sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+              sudo systemctl enable docker
+              sudo systemctl start docker
+
+              sudo usermod -aG docker ubuntu || true
             fi
 
-            cd vinstagram
-            git pull origin main
-            
+            echo "================ PROJECT UPDATE ================"
 
-            # ================= DOCKER DEPLOY =================
+            if [ ! -d "/home/ubuntu/vinstagram" ]; then
+              git clone https://github.com/Thriveni-9052/vinstagram.git /home/ubuntu/vinstagram
+            fi
+
+            cd /home/ubuntu/vinstagram
+            git pull origin main
+
+            echo "================ DOCKER DEPLOY ================"
+
             docker compose down || true
             docker compose up -d --build
