@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from flask import send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','gif', 'webp', 'mp4'}
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -50,34 +50,46 @@ def home():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        # 👉 form data
         username = request.form['username']
         password = request.form['password']
         bio = request.form.get('bio')
-        # 👉 profile pic upload
+
         file = request.files.get('profile_pic')
-        profile_pic = None
+        profile_pic = "default.png"
+
         if file and file.filename != '':
+            if not allowed_file(file.filename):
+                return "Only images allowed"
+
             filename = secure_filename(file.filename)
-            filepath = os.path.join('uploads', filename)
+
+            upload_folder = os.path.join(app.root_path, 'uploads')
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder)
+
+            filepath = os.path.join(upload_folder, filename)
             file.save(filepath)
+
             profile_pic = filename
-        # 👉 password hash
+
         hashed_password = generate_password_hash(password)
-        # 👉 check existing user
+
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return "User already exists"
-        # 👉 save user
+
         new_user = User(
             username=username,
             password=hashed_password,
             bio=bio,
             profile_pic=profile_pic
         )
+
         db.session.add(new_user)
         db.session.commit()
+
         return redirect('/login')
+
     return render_template('signup.html')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -100,22 +112,30 @@ def upload():
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({"message": "Login required"}), 401
+
     caption = request.form.get("caption")
     file = request.files.get("image")
     image_url = request.form.get("image_url")
-    # ✅ FILE UPLOAD (IMAGE + VIDEO)
+
     if file and file.filename != '':
         if not allowed_file(file.filename):
             return jsonify({"message": "Only image/video allowed"}), 400
+
         filename = secure_filename(file.filename)
-        filepath = os.path.join('uploads', filename)
+
+        upload_folder = os.path.join(app.root_path, 'uploads')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+        filepath = os.path.join(upload_folder, filename)
         file.save(filepath)
+
         new_post = Post(
             image=filename,
             caption=caption,
             user_id=user_id
         )
-    # ✅ IMAGE URL
+
     elif image_url:
         new_post = Post(
             image=image_url,
@@ -124,12 +144,11 @@ def upload():
         )
     else:
         return jsonify({"message": "Provide file or URL"}), 400
+
     db.session.add(new_post)
     db.session.commit()
+
     return redirect('/profile')
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 @app.route('/feed')
 def feed():
     posts = Post.query.all()
@@ -233,16 +252,27 @@ def profile():
 def edit_profile():
     if 'user_id' not in session:
         return redirect('/login')
+
     user = db.session.get(User, session['user_id'])
-    # 🔥 IMPORTANT CHECK
+
     if not user:
         return "User not found. Please login again."
+
     file = request.files.get('profile_pic')
+
     if file and file.filename != '':
         filename = secure_filename(file.filename)
-        file.save(os.path.join('uploads', filename))
+
+        upload_folder = os.path.join(app.root_path, 'uploads')
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+
         user.profile_pic = filename
         db.session.commit()
+
     return redirect('/profile')
 @app.route('/delete_comment/<int:comment_id>', methods=['POST'])
 def delete_comment(comment_id):
@@ -255,7 +285,6 @@ def delete_comment(comment_id):
 # ---------------- RUN ---------------- #
 if __name__ == '__main__':
     app.run(debug=True)
-
 
 
 
