@@ -2,5 +2,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "80:8000"
     restart: always
+    deploy:
+      replicas: 1
