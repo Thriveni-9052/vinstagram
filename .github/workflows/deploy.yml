@@ -57,5 +57,12 @@ jobs:
 
             echo "================ DOCKER DEPLOY ================"
 
+            sudo systemctl start docker || true
+            sudo systemctl enable docker || true
+
+            # IMPORTANT FIX
+            sudo chmod 666 /var/run/docker.sock || true
+
             docker compose down || true
             docker compose up -d --build
+            
