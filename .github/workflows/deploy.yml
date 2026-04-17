@@ -1,4 +1,4 @@
-name: Full Deploy to AWS
+name: Full Deploy to AWS (Docker)
 
 on:
   push:
@@ -19,7 +19,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.KEY }}
-
           script: |
             set -e
 
@@ -31,9 +30,12 @@ jobs:
 
               sudo install -m 0755 -d /etc/apt/keyrings
 
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+              sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+              echo \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+              $(lsb_release -cs) stable" | \
               sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
               sudo apt update -y
@@ -42,9 +44,10 @@ jobs:
 
               sudo systemctl enable docker
               sudo systemctl start docker
-
-              sudo usermod -aG docker ubuntu || true
             fi
+
+            echo "================ FIX DOCKER PERMISSION ================"
+            sudo chmod 666 /var/run/docker.sock || true
 
             echo "================ PROJECT UPDATE ================"
 
@@ -55,14 +58,13 @@ jobs:
             cd /home/ubuntu/vinstagram
             git pull origin main
 
+            echo "================ CLEAN OLD CONTAINERS ================"
+
+            docker ps -q | xargs -r docker stop || true
+            docker ps -aq | xargs -r docker rm || true
+            docker system prune -f || true
+
             echo "================ DOCKER DEPLOY ================"
-
-            sudo systemctl start docker || true
-            sudo systemctl enable docker || true
-
-            # IMPORTANT FIX
-            sudo chmod 666 /var/run/docker.sock || true
 
             docker compose down || true
             docker compose up -d --build
-            
