@@ -1,4 +1,4 @@
-name: Full Deploy to AWS
+name: Docker CI/CD Deploy
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Deploy to EC2
@@ -22,84 +22,16 @@ jobs:
           script: |
             set -e
 
-            # ================= SYSTEM UPDATE =================
-            sudo apt update -y
-            sudo apt install -y python3 python3-pip python3-venv git nginx
+            cd /home/ubuntu
 
-            # ================= PROJECT =================
-            if [ ! -d "/home/ubuntu/vinstagram" ]; then
-              git clone https://github.com/Thriveni-9052/vinstagram.git /home/ubuntu/vinstagram
+            # clone or update
+            if [ ! -d "vinstagram" ]; then
+              git clone https://github.com/Thriveni-9052/vinstagram.git
             fi
 
-            cd /home/ubuntu/vinstagram
+            cd vinstagram
             git pull origin main
 
-            # ================= VENV =================
-            python3 -m venv venv
-            source venv/bin/activate
-
-            pip install --upgrade pip
-            pip install -r requirements.txt
-
-            # ================= DB FIX =================
-            python3 <<'EOF'
-from backend.app import app, db
-from sqlalchemy import inspect, text
-
-with app.app_context():
-    inspector = inspect(db.engine)
-    tables = inspector.get_table_names()
-
-    if 'user' in tables:
-        columns = [c['name'] for c in inspector.get_columns('user')]
-
-        with db.engine.begin() as conn:
-            if 'bio' not in columns:
-                conn.execute(text("ALTER TABLE user ADD COLUMN bio TEXT"))
-
-            if 'profile_pic' not in columns:
-                conn.execute(text("ALTER TABLE user ADD COLUMN profile_pic TEXT"))
-    else:
-        db.create_all()
-EOF
-
-            # ================= SYSTEMD =================
-            sudo tee /etc/systemd/system/vinstagram.service > /dev/null <<'EOF'
-[Unit]
-Description=Gunicorn App
-After=network.target
-
-[Service]
-User=ubuntu
-WorkingDirectory=/home/ubuntu/vinstagram
-ExecStart=/home/ubuntu/vinstagram/venv/bin/gunicorn -w 3 -b 127.0.0.1:8000 backend.app:app
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-            sudo systemctl daemon-reload
-            sudo systemctl enable vinstagram
-            sudo systemctl restart vinstagram
-
-            # ================= NGINX =================
-            sudo rm -f /etc/nginx/sites-enabled/default || true
-
-            sudo tee /etc/nginx/sites-available/vinstagram > /dev/null <<'EOF'
-server {
-    listen 80;
-    server_name _;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        include proxy_params;
-    }
-}
-EOF
-
-            sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled/vinstagram
-            sudo nginx -t
-            sudo systemctl restart nginx
-
-            
+            # docker build + restart
+            docker compose down || true
+            docker compose up -d --build
