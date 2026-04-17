@@ -22,12 +22,6 @@ jobs:
           script: |
             set -e
 
-            # ================= FIX APT LOCK =================
-            sudo killall apt apt-get || true
-            sudo rm -f /var/lib/dpkg/lock-frontend || true
-            sudo rm -f /var/lib/dpkg/lock || true
-            sudo dpkg --configure -a || true
-
             # ================= SYSTEM UPDATE =================
             sudo apt update -y
             sudo apt install -y python3 python3-pip python3-venv git nginx
@@ -47,11 +41,30 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
 
-            # ================= SIMPLE DB INIT (SAFE) =================
-            python3 -c "from backend.app import app, db; app.app_context().push(); db.create_all()"
+            # ================= DB FIX =================
+            python3 <<'EOF'
+from backend.app import app, db
+from sqlalchemy import inspect, text
+
+with app.app_context():
+    inspector = inspect(db.engine)
+    tables = inspector.get_table_names()
+
+    if 'user' in tables:
+        columns = [c['name'] for c in inspector.get_columns('user')]
+
+        with db.engine.begin() as conn:
+            if 'bio' not in columns:
+                conn.execute(text("ALTER TABLE user ADD COLUMN bio TEXT"))
+
+            if 'profile_pic' not in columns:
+                conn.execute(text("ALTER TABLE user ADD COLUMN profile_pic TEXT"))
+    else:
+        db.create_all()
+EOF
 
             # ================= SYSTEMD =================
-            sudo tee /etc/systemd/system/vinstagram.service > /dev/null <<EOF
+            sudo tee /etc/systemd/system/vinstagram.service > /dev/null <<'EOF'
 [Unit]
 Description=Gunicorn App
 After=network.target
@@ -73,7 +86,7 @@ EOF
             # ================= NGINX =================
             sudo rm -f /etc/nginx/sites-enabled/default || true
 
-            sudo tee /etc/nginx/sites-available/vinstagram > /dev/null <<EOF
+            sudo tee /etc/nginx/sites-available/vinstagram > /dev/null <<'EOF'
 server {
     listen 80;
     server_name _;
@@ -88,3 +101,5 @@ EOF
             sudo ln -sf /etc/nginx/sites-available/vinstagram /etc/nginx/sites-enabled/vinstagram
             sudo nginx -t
             sudo systemctl restart nginx
+
+            
