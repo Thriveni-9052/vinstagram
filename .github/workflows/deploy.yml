@@ -73,12 +73,22 @@ jobs:
               docker rm $(docker ps -aq) || true
 
             echo "================ CLEAN OLD CONTAINERS ================"
-            docker ps -q | xargs -r docker stop || true
-            docker ps -aq | xargs -r docker rm || true
-            docker system prune -f || true
+
+             # stop running containers (if any)
+               docker ps -q | xargs -r docker stop
+
+             # remove all containers
+               docker ps -aq | xargs -r docker rm
+
+             # remove unused data
+               docker system prune -f
 
             echo "================ DOCKER DEPLOY ================"
-            docker compose down || true
-            docker compose up -d --build
 
-            
+            # stop old compose (if exists)
+              docker compose down || true
+
+            # build & start fresh
+              docker compose up -d --build
+
+              
