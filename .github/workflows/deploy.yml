@@ -58,10 +58,19 @@ jobs:
             cd /home/ubuntu/vinstagram
             git pull origin main
 
-            echo "================ FREE PORT 80 ================"
-            sudo fuser -k 80/tcp || true
-            sudo systemctl stop nginx || true
-            sudo systemctl disable nginx || true
+            echo "================ FREE PORTS ================"
+
+             # kill processes using ports
+               sudo fuser -k 80/tcp || true
+               sudo fuser -k 8000/tcp || true
+
+            # stop nginx if running
+              sudo systemctl stop nginx || true
+              sudo systemctl disable nginx || true
+
+             # stop & remove ALL docker containers
+              docker stop $(docker ps -aq) || true
+              docker rm $(docker ps -aq) || true
 
             echo "================ CLEAN OLD CONTAINERS ================"
             docker ps -q | xargs -r docker stop || true
@@ -71,7 +80,5 @@ jobs:
             echo "================ DOCKER DEPLOY ================"
             docker compose down || true
             docker compose up -d --build
-
-            
 
             
