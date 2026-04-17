@@ -32,6 +32,8 @@ jobs:
             cd vinstagram
             git pull origin main
 
+            
+
             # docker build + restart
             docker compose down || true
             docker compose up -d --build
