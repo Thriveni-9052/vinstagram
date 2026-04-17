@@ -1,4 +1,4 @@
-name: Docker CI/CD Deploy
+name: Full Auto Deploy (Zero Setup)
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Deploy to EC2
@@ -22,18 +22,36 @@ jobs:
           script: |
             set -e
 
+            # ================= SYSTEM UPDATE =================
+            sudo apt update -y
+            sudo apt upgrade -y
+
+            # ================= INSTALL REQUIREMENTS =================
+            sudo apt install -y \
+              git \
+              python3 \
+              python3-pip \
+              python3-venv \
+              nginx \
+              docker.io \
+              docker-compose-plugin
+
+            # ================= START DOCKER =================
+            sudo systemctl enable docker
+            sudo systemctl start docker
+            sudo usermod -aG docker ubuntu || true
+
+            # ================= PROJECT =================
             cd /home/ubuntu
 
-            # clone or update
             if [ ! -d "vinstagram" ]; then
               git clone https://github.com/Thriveni-9052/vinstagram.git
             fi
 
             cd vinstagram
             git pull origin main
-
             
 
-            # docker build + restart
+            # ================= DOCKER DEPLOY =================
             docker compose down || true
             docker compose up -d --build
