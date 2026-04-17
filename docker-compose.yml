@@ -6,4 +6,6 @@ services:
     ports:
       - "5000:8000"
     restart: always
+   environment:
+  - RESET_DB=true 
     
