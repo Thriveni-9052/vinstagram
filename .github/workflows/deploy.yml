@@ -58,15 +58,20 @@ jobs:
             cd /home/ubuntu/vinstagram
             git pull origin main
 
-            echo "================ CLEAN OLD CONTAINERS ================"
+            echo "================ FREE PORT 80 ================"
+            sudo fuser -k 80/tcp || true
+            sudo systemctl stop nginx || true
+            sudo systemctl disable nginx || true
 
+            echo "================ CLEAN OLD CONTAINERS ================"
             docker ps -q | xargs -r docker stop || true
             docker ps -aq | xargs -r docker rm || true
             docker system prune -f || true
 
             echo "================ DOCKER DEPLOY ================"
-
             docker compose down || true
             docker compose up -d --build
+
+            
 
             
