@@ -45,8 +45,12 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
+import os
+
 with app.app_context():
-    db.create_all()
+    if os.environ.get("RESET_DB") == "true":
+        db.drop_all()   # old tables delete
+    db.create_all()     # fresh create
 
  
 # ---------------- HOME ---------------- #
